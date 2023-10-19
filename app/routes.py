@@ -130,9 +130,11 @@ def comments(username: str, post_id: int):
     user = sqlite.query(get_user, one=True)
 
     if comments_form.is_submitted():
+        # Sanitize user comment data using bleach
+        user_comment = bleach.clean(comments_form.comment.data, tags=[], attributes={})
         insert_comment = f"""
             INSERT INTO Comments (p_id, u_id, comment, creation_time)
-            VALUES ({post_id}, {user["id"]}, '{comments_form.comment.data}', CURRENT_TIMESTAMP);
+            VALUES ({post_id}, {user["id"]}, '{user_comment}', CURRENT_TIMESTAMP);
             """
         sqlite.query(insert_comment)
 
@@ -234,6 +236,13 @@ def profile(username: str):
         sqlite.query(update_profile)
         return redirect(url_for("profile", username=username))
 
+    user["education"] = bleach.clean(user["education"])
+    user["employment"] = bleach.clean(user["employment"])
+    user["music"] = bleach.clean(user["music"])
+    user["movie"] = bleach.clean(user["movie"])
+    user["nationality"] = bleach.clean(user["nationality"])
+    user["birthday"] = bleach.clean(user["birthday"])
+    
     return render_template("profile.html.j2", title="Profile", username=username, user=user, form=profile_form)
 
 
