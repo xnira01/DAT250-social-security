@@ -8,13 +8,15 @@ from pathlib import Path
 
 from flask import flash, redirect, render_template, send_from_directory, url_for
 
-from app import app, sqlite
+from app import app, sqlite, bcrypt
 from app.forms import CommentsForm, FriendsForm, IndexForm, PostForm, ProfileForm
-
+import os
+import re 
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
 def index():
+    ###IDEA USE parameterized queries to prevent SQL injection,
     """Provides the index page for the application.
 
     It reads the composite IndexForm and based on which form was submitted,
@@ -27,30 +29,45 @@ def index():
     register_form = index_form.register
 
     if login_form.is_submitted() and login_form.submit.data:
-        get_user = f"""
-            SELECT *
-            FROM Users
-            WHERE username = '{login_form.username.data}';
-            """
-        user = sqlite.query(get_user, one=True)
+        if not re.match("^[a-zA-Z0-9_@]+$", index_form.login.username.data):
+            flash("Invalid Username")
+            return render_template("index.html.j2", title="Welcome", form=index_form)
+
+        query = "SELECT * FROM Users WHERE username = ?"
+        user = sqlite.query(query, one=True, args=(index_form.login.username.data,))
 
         if user is None:
             flash("Sorry, this user does not exist!", category="warning")
         elif user["password"] != login_form.password.data:
             flash("Sorry, wrong password!", category="warning")
         elif user["password"] == login_form.password.data:
-            return redirect(url_for("stream", username=login_form.username.data))
+            return redirect(url_for("stream", username=index_form.login.username.data))
 
-    elif register_form.is_submitted() and register_form.submit.data:
-        insert_user = f"""
-            INSERT INTO Users (username, first_name, last_name, password)
-            VALUES ('{register_form.username.data}', '{register_form.first_name.data}', '{register_form.last_name.data}', '{register_form.password.data}');
-            """
-        sqlite.query(insert_user)
+    elif register_form.is_submitted() and register_form.submit.data and register_form.validate_on_submit():
+        query = "SELECT username FROM Users WHERE username = ?"
+        existing_user = sqlite.query(query, one=True, args=(register_form.username.data,))
+
+        if existing_user:
+            flash("This username already exists", category="warning")
+            return redirect(url_for('index'))
+        #hash and verify passwords using the bcrypt hashing algorithm 
+        user_password = register_form.password.data
+        hashed_password = bcrypt.generate_password_hash(user_password).decode('utf-8')
+        
+        query = "INSERT INTO Users (username, first_name, last_name, password) VALUES (?, ?, ?, ?)"
+        user_data = (register_form.username.data, register_form.first_name.data, register_form.last_name.data, hashed_password)
+        sqlite.query(query, one=True, args=user_data)
+
         flash("User successfully created!", category="success")
         return redirect(url_for("index"))
+    # else: 
+    #     for field, errors in register_form.errors.items():
+    #         for error in errors: 
+    #             flash(f"Validation error for {field}: {error}", category="error")
+    
 
     return render_template("index.html.j2", title="Welcome", form=index_form)
+
 
 
 @app.route("/stream/<string:username>", methods=["GET", "POST"])

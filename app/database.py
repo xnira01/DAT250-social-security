@@ -107,7 +107,7 @@ class SQLite3:
             conn.row_factory = sqlite3.Row
         return conn
 
-    def query(self, query: str, one: bool = False, *args) -> Any:
+    def query(self, query: str, one: bool = False, args: tuple = ()) -> Any:
         """Queries the database and returns the result.'
 
         params:
@@ -118,7 +118,8 @@ class SQLite3:
         returns: A single row, a list of rows or None.
 
         """
-        cursor = self.connection.execute(query, args)
+        cursor = self.connection.cursor()
+        cursor.execute(query, args)
         response = cursor.fetchone() if one else cursor.fetchall()
         cursor.close()
         self.connection.commit()
