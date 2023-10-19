@@ -101,7 +101,7 @@ class SQLite3:
     @property
     def connection(self) -> sqlite3.Connection:
         """Returns the connection to the SQLite3 database."""
-        conn = getattr(g, "flask_sqlite3_connection", None)
+        conn = getattr(g, "flask_sqlite3_connection", None) ##thread safety
         if conn is None:
             conn = g.flask_sqlite3_connection = sqlite3.connect(self._path)
             conn.row_factory = sqlite3.Row
@@ -117,21 +117,31 @@ class SQLite3:
 
         returns: A single row, a list of rows or None.
 
-        """
+        """ ##adding error handling
         cursor = self.connection.cursor()
-        cursor.execute(query, args)
-        response = cursor.fetchone() if one else cursor.fetchall()
-        cursor.close()
-        self.connection.commit()
-        return response
+        try:
+            cursor.execute(query, args)
+            response = cursor.fetchone() if one else cursor.fetchall()
+            self.connection.commit()
+            return response
+        except sqlite3.Error as e: 
+            print(F"Error: {e}")
+            return None
+        finally:
+            cursor.close()
+        
 
     # TODO: Add more specific query methods to simplify code
 
     def _init_database(self, schema: PathLike | str) -> None:
         """Initializes the database with the supplied schema if it does not exist yet."""
-        with current_app.open_resource(str(schema), mode="r") as file:
-            self.connection.executescript(file.read())
-            self.connection.commit()
+        try:
+            with current_app.open_resource(str(schema), mode="r") as file:
+                self.connection.executescript(file.read())
+                self.connection.commit()
+        except sqlite3.Error as e:
+        # Handle database initialization errors
+            print(f"init Eerror: {e}")
 
     def _close_connection(self, exception: Optional[BaseException] = None) -> None:
         """Closes the connection to the database."""

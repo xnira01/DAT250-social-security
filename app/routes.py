@@ -34,7 +34,7 @@ def index():
             flash("Invalid Username")
             return render_template("index.html.j2", title="Welcome", form=index_form)
 
-        query = "SELECT * FROM Users WHERE username = ?"
+        query = "SELECT * FROM Users WHERE username = ?" ###https://stackoverflow.com/questions/6786034/can-parameterized-statement-stop-all-sql-injection
         user = sqlite.query(query, one=True, args=(index_form.login.username.data,))
 
         if user is None:
