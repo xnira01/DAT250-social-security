@@ -11,7 +11,8 @@ from flask import flash, redirect, render_template, send_from_directory, url_for
 from app import app, sqlite, bcrypt
 from app.forms import CommentsForm, FriendsForm, IndexForm, PostForm, ProfileForm
 import os
-import re 
+import re
+import bleach 
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
@@ -105,6 +106,10 @@ def stream(username: str):
          ORDER BY p.creation_time DESC;
         """
     posts = sqlite.query(get_posts)
+    
+    for post in posts:
+        post["content"] = bleach.clean(post["content"])
+    
     return render_template("stream.html.j2", title="Stream", username=username, form=post_form, posts=posts)
 
 

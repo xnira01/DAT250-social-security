@@ -33,7 +33,7 @@ from wtforms import (
     SubmitField,
     TextAreaField,  
 )
-from wtforms.validators import DataRequired, Length, Regexp
+from wtforms.validators import DataRequired, Length, Regexp, ValidationError
 
 
 # Defines all forms in the application, these will be instantiated by the template,
