@@ -22,3 +22,8 @@ class Config:
     UPLOADS_FOLDER_PATH = "uploads"  # Path relative to the Flask instance folder
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}  # TODO: Might use this at some point, probably don't want people to upload any file type
     WTF_CSRF_ENABLED = False  # TODO: I should probably implement this wtforms feature, but it's not a priority
+    
+    
+    # RECAPTCHA_PUBLIC_KEY = 'recaptcha-key' #prevent automated bot registrations. will see if we have time
+    # RECAPTCHA_PRIVATE_KEY = 'recaptcha--key'
+

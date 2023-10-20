@@ -8,7 +8,7 @@ from flask import Flask
 from app.config import Config
 from app.database import SQLite3
 
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin, login_user
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_bootstrap import Bootstrap
@@ -22,15 +22,24 @@ app.config.from_object(Config)
 sqlite = SQLite3(app, schema="schema.sql")
 
 # TODO: Handle login management better, maybe with flask_login?
-#login = LoginManager(app)
-#login.init_app(app)
-#login.login_view = 'index'
+# login = LoginManager(app)
+# login.init_app(app)
+# login.login_view = 'index'
+
+# class User(UserMixin):
+#     def __init__(self, user_id):
+#         self.id = user_id
+# @login.user_loader
+# def load_user(user_id):
+#     return User.query.get(int(id))
 
 # TODO: The passwords are stored in plaintext, this is not secure at all. I should probably use bcrypt or something
 bcrypt = Bcrypt(app)
 
 # TODO: The CSRF protection is not working, I should probably fix that
 csrf = CSRFProtect(app)
+
+
 
 # Create the instance and upload folder if they do not exist
 with app.app_context():

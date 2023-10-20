@@ -144,7 +144,9 @@ class PostForm(FlaskForm):
     """Provides the post form for the application."""
 
     content = TextAreaField(label="New Post", render_kw={"placeholder": "What are you thinking about?"})
-    image = FileField('Image', validators=[FileAllowed(['jpg', 'png', 'img', 'jpeg', 'data'], ' Only jpeg, jpg, png and img files are allowed')])
+    image = FileField('Image', 
+                      validators=[FileAllowed(['jpg', 'png', 'img', 'jpeg', 'data'], 
+                                              'Only jpeg, jpg, png and img files are allowed')]) #type validation
     submit = SubmitField(label="Post")
 
 

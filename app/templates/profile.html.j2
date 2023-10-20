@@ -1,4 +1,5 @@
 {% extends "base.html.j2" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
   <div class="container-flex justify-content-center">
     <div class="row justify-content-center">
@@ -62,14 +63,14 @@
             <!--Edit details-->
             <div id="edit-details" style="display: none;">
               <form action="" method="post" novalidate>
-                <div class="mb-2">{{ form.education(class_="form-control") }}</div>
-                <div class="mb-2">{{ form.employment(class_="form-control")|e }}</div>
-                <div class="mb-2">{{ form.music(class_="form-control")|e }}</div>
-                <div class="mb-2">{{ form.movie(class_="form-control")|e }}</div>
-                <div class="mb-2">{{ form.nationality(class_="form-control")|e }}</div>
-                <div class="mb-3">{{ form.birthday(class_="form-control") }}</div>
-                <div>{{ form.submit(class="btn btn-primary") }}</div>
-              </form>
+                {{ wtf.form_field(form.education) }}
+                {{ wtf.form_field(form.employment) }}
+                {{ wtf.form_field(form.music) }}
+                {{ wtf.form_field(form.movie) }}
+                {{ wtf.form_field(form.nationality) }}
+                {{ wtf.form_field(form.birthday) }}
+                {{ wtf.form_field(form.submit, class="btn btn-primary") }}
+                </form>
           </div>
           </div>
         </div>
