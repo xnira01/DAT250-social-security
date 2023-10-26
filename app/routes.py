@@ -6,15 +6,16 @@ It also contains the SQL queries used for communicating with the database.
 
 from pathlib import Path
 
+
 from flask import flash, redirect, render_template, send_from_directory, url_for, session, request
 
-from app import app, sqlite, bcrypt
+from app import app, sqlite, bcrypt, login_required
 from app.forms import CommentsForm, FriendsForm, IndexForm, PostForm, ProfileForm
 import os
 import re
 import bleach 
 from werkzeug.utils import secure_filename
-from flask_login import login_user, login_required, current_user, logout_user
+#from flask_login import login_user, login_required, current_user, logout_user
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
@@ -76,18 +77,12 @@ def index():
 
 
 
-#if anyone tryes to access non-accessible page, send them to index
-@app.before_request
-def require_login(): ##THIS AT THE MOMENT ISNT WORKINGGG
-    allowed_routes = ['index']
-    if 'username' not in session and request.endpoint not in allowed_routes:
-        flash("Please log in to access this page.", category="error")
-        return redirect(url_for('index'))
+
 
 
    
 @app.route("/stream/<string:username>", methods=["GET", "POST"])
-#@login_required
+@login_required
 def stream(username: str):
     """Provides the stream page for the application.
 
@@ -142,6 +137,7 @@ def stream(username: str):
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])
+@login_required
 def comments(username: str, post_id: int):
     """Provides the comments page for the application.
 
@@ -189,6 +185,7 @@ def comments(username: str, post_id: int):
 
 
 @app.route("/friends/<string:username>", methods=["GET", "POST"])
+@login_required
 def friends(username: str):
     """Provides the friends page for the application.
 
@@ -242,7 +239,12 @@ def friends(username: str):
         """
     friends = sqlite.query(get_friends, args=(user["id"], user["id"]))
     return render_template("friends.html.j2", title="Friends", username=username, friends=friends, form=friends_form)
+
+
+
+
 @app.route("/profile/<string:username>", methods=["GET", "POST"])
+@login_required
 def profile(username: str):
     """Provides the profile page for the application.
 
@@ -250,6 +252,11 @@ def profile(username: str):
 
     Otherwise, it reads the username from the URL and displays the user's profile.
     """
+    current_username = session.get('username')
+    is_owner = (username == current_username)
+    if not is_owner:
+        flash("You are not authorized to edit this profile.", "warning")
+        return redirect(url_for("stream", username=current_username))
     profile_form = ProfileForm()
     get_user = """
         SELECT *
@@ -291,6 +298,15 @@ def profile(username: str):
 
 
 @app.route("/uploads/<string:filename>")
+@login_required
 def uploads(filename):
     """Provides an endpoint for serving uploaded files."""
     return send_from_directory(Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename)
+
+
+
+@app.route("/logout")
+def logout():
+    """Logs the user out and clears the session."""
+    session.clear()  # Clear the user's session
+    return redirect(url_for("index"))  

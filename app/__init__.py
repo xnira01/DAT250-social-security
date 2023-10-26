@@ -1,6 +1,7 @@
 """Provides the app package for the Social Insecurity application. The package contains the Flask app and all of the extensions and routes."""
 
 from pathlib import Path
+from functools import wraps
 from typing import cast
 
 from flask import Flask
@@ -8,7 +9,8 @@ from flask import Flask
 from app.config import Config
 from app.database import SQLite3
 
-from flask_login import LoginManager, UserMixin, login_user
+#from flask_login import LoginManager, UserMixin, login_user
+from flask import redirect, url_for, session, flash
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_bootstrap import Bootstrap
@@ -32,6 +34,16 @@ sqlite = SQLite3(app, schema="schema.sql")
 # @login.user_loader
 # def load_user(user_id):
 #     return User.query.get(int(id))
+
+#if anyone tryes to access non-accessible page, send them to index
+def login_required(func): #
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            flash("Please log in to access this page.", "warning")
+            return redirect(url_for('index'))
+        return func(*args, **kwargs)
+    return decorated_function
 
 # TODO: The passwords are stored in plaintext, this is not secure at all. I should probably use bcrypt or something
 bcrypt = Bcrypt(app)
