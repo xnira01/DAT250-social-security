@@ -6,6 +6,10 @@ authors = [{ name = "solbero", email = "njosol@pm.me" }]
 dependencies = [
     "flask[dotenv]>=2.3.0",
     "Flask-WTF>=1.1.0",
+    "flask-bcrypt>=1.0.1",
+    "flask-bootstrap>=3.3.7.1",
+    "bleach>=6.1.0",
+    "flask-limiter>=3.5.0",
 ]
 requires-python = ">=3.9"
 license = { text = "MIT" }

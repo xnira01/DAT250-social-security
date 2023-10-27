@@ -7,18 +7,19 @@ It also contains the SQL queries used for communicating with the database.
 from pathlib import Path
 
 
-from flask import flash, redirect, render_template, send_from_directory, url_for, session, request
+from flask import flash, redirect, render_template, send_from_directory, url_for, session
 
-from app import app, sqlite, bcrypt, login_required
+from app import app, sqlite, bcrypt, login_required, limiter
 from app.forms import CommentsForm, FriendsForm, IndexForm, PostForm, ProfileForm
 import os
 import re
-import bleach 
+import bleach
 from werkzeug.utils import secure_filename
 #from flask_login import login_user, login_required, current_user, logout_user
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def index():
     ###IDEA USE parameterized queries to prevent SQL injection,
     """Provides the index page for the application.
@@ -82,6 +83,7 @@ def index():
 
    
 @app.route("/stream/<string:username>", methods=["GET", "POST"])
+@limiter.limit("20 per minute")
 @login_required
 def stream(username: str):
     """Provides the stream page for the application.
@@ -137,6 +139,7 @@ def stream(username: str):
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 @login_required
 def comments(username: str, post_id: int):
     """Provides the comments page for the application.

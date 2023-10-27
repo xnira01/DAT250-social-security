@@ -4,7 +4,7 @@ from pathlib import Path
 from functools import wraps
 from typing import cast
 
-from flask import Flask
+from flask import Flask, request
 
 from app.config import Config
 from app.database import SQLite3
@@ -12,6 +12,10 @@ from app.database import SQLite3
 #from flask_login import LoginManager, UserMixin, login_user
 from flask import redirect, url_for, session, flash
 from flask_bcrypt import Bcrypt
+
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from flask_wtf.csrf import CSRFProtect
 from flask_bootstrap import Bootstrap
 
@@ -22,6 +26,9 @@ app.config.from_object(Config)
 
 # Instantiate the sqlite database extension
 sqlite = SQLite3(app, schema="schema.sql")
+
+# Rate limit
+limiter = Limiter(get_remote_address, app=app, default_limits=["1000 per day", "500 per hour", "10 per minute"])
 
 # TODO: Handle login management better, maybe with flask_login?
 # login = LoginManager(app)
